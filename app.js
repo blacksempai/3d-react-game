@@ -26,24 +26,31 @@ io.on('connection', (socket) => {
     socket.on('join_room', (room) => {
         socket.join(room);
         socketRoom = room;
-        const rm = rooms.find(r => r.name == room);
-        if(rm) {
-            io.to(rm.name).emit('receive_message', rm.messages);
-        }
-        else {
-            rooms.push({
+        let rm = rooms.find(r => r.name == room);
+        if(!rm) {
+            rm = {
                 name: room,
-                messages: []
-            });
+                messages: [],
+                players: []
+            }
+            rooms.push(rm);
+        }
+        rm.players.push({
+            id: socket.id,
+            playerMovement: {},
+            position: [0, 0, 0]
+        });
+    });
+
+    socket.on('player_move', (playerMovement) => {
+        const room = rooms.find(r => r.name === socketRoom);
+        if(room) {
+            const player = room.players.find(p => p.id === socket.id);
+            if(player) {
+                player.playerMovement = playerMovement;
+                console.log(player)
+            }
         }
     });
-    
-    socket.on('send_message', (message) => {
-        let room = rooms.find(r => r.name == socketRoom);
-        if(room) {
-            room.messages.push(message);
-            io.to(room.name).emit('receive_message', room.messages);
-        }
-    })
 
 });
