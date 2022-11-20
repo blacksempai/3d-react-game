@@ -1,5 +1,5 @@
 .form {
-    position: absolute;
+    position: fixed;
     display: block;
     top: 1rem;
     left: 40%;
