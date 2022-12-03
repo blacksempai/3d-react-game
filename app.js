@@ -54,3 +54,25 @@ io.on('connection', (socket) => {
     });
 
 });
+
+setInterval(serverTick, 1000/30);
+
+function serverTick() {
+    rooms.forEach(room => {
+        room.players.forEach(player => {
+            if (player.playerMovement.left) {
+                player.position[0] -= 0.25
+            }
+            if (player.playerMovement.right) {
+                player.position[0] += 0.25
+            }
+            if (player.playerMovement.up) {
+                player.position[2] -= 0.25
+            }
+            if (player.playerMovement.down) {
+                player.position[2] += 0.25
+            }
+        });
+        io.to(room.name).emit('server_tick', room);
+    })
+}

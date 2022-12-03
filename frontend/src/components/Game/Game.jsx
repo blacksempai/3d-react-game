@@ -4,7 +4,7 @@ import Player from './Player/Player';
 import Plane from './Plane/Plane';
 import { OrbitControls, Stars } from '@react-three/drei'
 import RoomForm from './RoomForm/RoomForm';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const playerMovement = {
   up: false,
@@ -16,10 +16,23 @@ const playerMovement = {
 
 function Game(props) {
   const socket = props.socket;
+  const [room, setRoom] = useState({players: []});
+
+  useEffect(()=> {
+    socket.on('server_tick', (room) => {
+      setRoom(room);
+    })
+  }, [socket])
 
   useEffect(() => {
     window.addEventListener('keydown', downHandler);
     window.addEventListener('keyup', upHandler);
+    window.addEventListener('visibilitychange',()=> {
+      playerMovement.up = false;
+      playerMovement.down = false;
+      playerMovement.left = false;
+      playerMovement.right = false;
+    });
     return () => {
       window.removeEventListener('keydown', downHandler);
       window.removeEventListener('keyup', upHandler);
@@ -57,7 +70,7 @@ function Game(props) {
             <Stars/>
             <ambientLight intensity={0.2}/>
             <pointLight position={[10, 10, 10]} />
-            <Player position={[0, 0, 0]} />
+            { room.players.map(p => <Player position={p.position} />) }
             <Plane/>
         </Canvas>
     </div>
