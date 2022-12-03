@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "concurrently \"nodemon app\" \"npm start --prefix frontend \" "
+    "dev": "concurrently \"nodemon app\" \"npm start --prefix frontend \" ",
+    "start": "node app"
   },
   "author": "Robocode",
   "license": "ISC",
