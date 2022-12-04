@@ -4,7 +4,7 @@ import Player from './Player/Player';
 import Plane from './Plane/Plane';
 import { OrbitControls, Stars } from '@react-three/drei'
 import RoomForm from './RoomForm/RoomForm';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const playerMovement = {
   up: false,
@@ -16,6 +16,16 @@ const playerMovement = {
 
 function Game(props) {
   const socket = props.socket;
+  const [room, setRoom] = useState({players:[]});
+  const [cameraPosition, setCameraPosition] = useState([0,0,0]);
+
+  useEffect(() => {
+    socket.on('server_tick', room => {
+      setRoom(room);
+      const curentPlayer = room.players.find(p => p.id === socket.id);
+      setCameraPosition(curentPlayer.position);
+    });
+  }, [socket]);
 
   useEffect(() => {
     window.addEventListener('keydown', downHandler);
@@ -53,11 +63,11 @@ function Game(props) {
         <RoomForm socket={socket}/>
         <Canvas flat linear>
             <color attach="background" args={['#000']} />
-            <OrbitControls/>
+            <OrbitControls target={cameraPosition} position={cameraPosition}/>
             <Stars/>
             <ambientLight intensity={0.2}/>
-            <pointLight position={[10, 10, 10]} />
-            <Player position={[0, 0, 0]} />
+            <pointLight position={[5, 10, 0]} />
+            { room.players.map(p => <Player position={p.position} key={p.id} />) }
             <Plane/>
         </Canvas>
     </div>

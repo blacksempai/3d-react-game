@@ -48,9 +48,30 @@ io.on('connection', (socket) => {
             const player = room.players.find(p => p.id === socket.id);
             if(player) {
                 player.playerMovement = playerMovement;
-                console.log(player)
             }
         }
     });
 
 });
+
+setInterval(serverTick, 25);
+
+function serverTick() {
+    rooms.forEach(r => {
+        r.players.forEach(p => {
+            if(p.playerMovement.left) {
+                p.position[0] -= 0.25;
+            }
+            if(p.playerMovement.right) {
+                p.position[0] += 0.25;
+            }
+            if(p.playerMovement.up) {
+                p.position[2] -= 0.25;
+            }
+            if(p.playerMovement.down) {
+                p.position[2] += 0.25;
+            }
+        });
+        io.to(r.name).emit('server_tick', r);
+    });
+}
