@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
 
 });
 
-setInterval(serverTick, 1000/30);
+setInterval(serverTick, 1000/60);
 
 function serverTick() {
     rooms.forEach(room => {

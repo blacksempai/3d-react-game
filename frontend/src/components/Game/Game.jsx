@@ -13,26 +13,22 @@ const playerMovement = {
   right: false
 };
 
-
 function Game(props) {
   const socket = props.socket;
   const [room, setRoom] = useState({players: []});
+  const [cameraPosition, setCameraPosition] = useState([-1,-1,-1]);
 
   useEffect(()=> {
     socket.on('server_tick', (room) => {
       setRoom(room);
+      const cp = room.players.find(p => p.id === socket.id);
+      setCameraPosition([cp.position[0],cp.position[1],cp.position[2]]);
     })
   }, [socket])
 
   useEffect(() => {
     window.addEventListener('keydown', downHandler);
     window.addEventListener('keyup', upHandler);
-    window.addEventListener('visibilitychange',()=> {
-      playerMovement.up = false;
-      playerMovement.down = false;
-      playerMovement.left = false;
-      playerMovement.right = false;
-    });
     return () => {
       window.removeEventListener('keydown', downHandler);
       window.removeEventListener('keyup', upHandler);
@@ -65,10 +61,10 @@ function Game(props) {
     <div className={classes.canvasContainer}>
         <RoomForm socket={socket}/>
         <Canvas flat linear>
-            <color attach="background" args={['#000']} />
-            <OrbitControls/>
+            <color attach="background" args={['lightblue']} />
+            <OrbitControls target={cameraPosition} />
             <Stars/>
-            <ambientLight intensity={0.2}/>
+            <ambientLight intensity={0.7}/>
             <pointLight position={[10, 10, 10]} />
             { room.players.map(p => <Player position={p.position} />) }
             <Plane/>
