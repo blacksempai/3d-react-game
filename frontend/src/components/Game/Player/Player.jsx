@@ -1,7 +1,7 @@
 function Player(props) {
     return (
         <mesh position={props.position}>
-            <boxGeometry args={[1, 1, 1]} />
+            <boxGeometry args={[5, 5, 5]} />
             <meshStandardMaterial color='hotpink'/>
         </mesh>
     )

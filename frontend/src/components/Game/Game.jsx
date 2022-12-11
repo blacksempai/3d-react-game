@@ -16,7 +16,7 @@ const playerMovement = {
 
 function Game(props) {
   const socket = props.socket;
-  const [room, setRoom] = useState({players:[]});
+  const [room, setRoom] = useState({players:[], world: []});
   const [cameraPosition, setCameraPosition] = useState([0,0,0]);
 
   useEffect(() => {
@@ -68,7 +68,7 @@ function Game(props) {
             <ambientLight intensity={0.2}/>
             <pointLight position={[5, 10, 0]} />
             { room.players.map(p => <Player position={p.position} key={p.id} />) }
-            <Plane/>
+            <Plane world={room.world}/>
         </Canvas>
     </div>
   );

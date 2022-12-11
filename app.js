@@ -31,7 +31,8 @@ io.on('connection', (socket) => {
             rm = {
                 name: room,
                 messages: [],
-                players: []
+                players: [],
+                world: generateWorld()
             }
             rooms.push(rm);
         }
@@ -54,24 +55,43 @@ io.on('connection', (socket) => {
 
 });
 
+const models = ['Mushroom_1', 'Mushroom_2', 'Mushroom_3', 'Mushroom_4']
+
+function generateWorld() {
+    const world = [];
+    for(let i = 0; i < 100; i++) {
+        const index = Math.floor(Math.random() * models.length);
+        const x = Math.floor(Math.random() * 1000) - 500;
+        const z = Math.floor(Math.random() * 1000) - 500;
+        const object = {
+            id: i,
+            position: [x, 0, z],
+            model: models[index]
+        }
+        world.push(object);
+    }
+    return world;
+}
+
 setInterval(serverTick, 25);
 
 function serverTick() {
     rooms.forEach(r => {
         r.players.forEach(p => {
             if(p.playerMovement.left) {
-                p.position[0] -= 0.25;
+                p.position[0] -= 1;
             }
             if(p.playerMovement.right) {
-                p.position[0] += 0.25;
+                p.position[0] += 1;
             }
             if(p.playerMovement.up) {
-                p.position[2] -= 0.25;
+                p.position[2] -= 1;
             }
             if(p.playerMovement.down) {
-                p.position[2] += 0.25;
+                p.position[2] += 1;
             }
         });
+        //TODO: send only players
         io.to(r.name).emit('server_tick', r);
     });
 }
