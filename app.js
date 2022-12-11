@@ -36,10 +36,13 @@ io.on('connection', (socket) => {
             }
             rooms.push(rm);
         }
+
         rm.players.push({
             id: socket.id,
             playerMovement: {},
-            position: [0, 0, 0]
+            position: [0, -2.8, 0],
+            model: getRandomModel(),
+            type: 'HIDDER'
         });
     });
 
@@ -57,16 +60,20 @@ io.on('connection', (socket) => {
 
 const models = ['Mushroom_1', 'Mushroom_2', 'Mushroom_3', 'Mushroom_4']
 
+function getRandomModel() {
+    const index = Math.floor(Math.random() * models.length);
+    return models[index];
+}
+
 function generateWorld() {
     const world = [];
     for(let i = 0; i < 100; i++) {
-        const index = Math.floor(Math.random() * models.length);
         const x = Math.floor(Math.random() * 1000) - 500;
         const z = Math.floor(Math.random() * 1000) - 500;
         const object = {
             id: i,
-            position: [x, 0, z],
-            model: models[index]
+            position: [x, -2.8, z],
+            model: getRandomModel()
         }
         world.push(object);
     }

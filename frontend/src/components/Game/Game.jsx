@@ -5,6 +5,8 @@ import Plane from './Plane/Plane';
 import { OrbitControls, Stars } from '@react-three/drei'
 import RoomForm from './RoomForm/RoomForm';
 import { useEffect, useState } from 'react';
+import { useLoader } from "@react-three/fiber";
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
 const playerMovement = {
   up: false,
@@ -18,6 +20,17 @@ function Game(props) {
   const socket = props.socket;
   const [room, setRoom] = useState({players:[], world: []});
   const [cameraPosition, setCameraPosition] = useState([0,0,0]);
+
+  const models = new Map();
+  models.set('Mushroom_1', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Mushroom_1.fbx')); 
+  models.set('Mushroom_2', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Mushroom_2.fbx'));
+  models.set('Mushroom_3', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Mushroom_3.fbx'));
+  models.set('Mushroom_4', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Mushroom_4.fbx'));
+
+  const getObj = (name) => {
+      const object = models.get(name);
+      return object.clone();
+  }
 
   useEffect(() => {
     socket.on('server_tick', room => {
@@ -62,13 +75,12 @@ function Game(props) {
     <div className={classes.canvasContainer}>
         <RoomForm socket={socket}/>
         <Canvas flat linear>
-            <color attach="background" args={['#000']} />
+            <color attach="background" args={['lightblue']} />
             <OrbitControls target={cameraPosition} position={cameraPosition}/>
-            <Stars/>
-            <ambientLight intensity={0.2}/>
+            <ambientLight intensity={0.8}/>
             <pointLight position={[5, 10, 0]} />
-            { room.players.map(p => <Player position={p.position} key={p.id} />) }
-            <Plane world={room.world}/>
+            { room.players.map(p => <Player position={p.position} key={p.id} model={p.model} type={p.type} getObj={getObj}/>) }
+            <Plane world={room.world} getObj={getObj}/>
         </Canvas>
     </div>
   );
