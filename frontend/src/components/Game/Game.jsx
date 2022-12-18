@@ -2,9 +2,9 @@ import { Canvas } from '@react-three/fiber'
 import classes from './Game.module.css';
 import Player from './Player/Player';
 import Plane from './Plane/Plane';
-import { OrbitControls, Stars } from '@react-three/drei'
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
 import RoomForm from './RoomForm/RoomForm';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLoader } from "@react-three/fiber";
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
@@ -20,6 +20,8 @@ function Game(props) {
   const socket = props.socket;
   const [room, setRoom] = useState({players:[], world: []});
   const [cameraPosition, setCameraPosition] = useState([0,0,0]);
+
+  const orbitControlsRef = useRef();
 
   const models = new Map();
   models.set('Mushroom_1', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Mushroom_1.fbx')); 
@@ -57,7 +59,8 @@ function Game(props) {
       case 83: playerMovement.down = true; break;
       default: return;
     }
-    socket.emit('player_move', playerMovement);
+    const rotation = orbitControlsRef.current.getAzimuthalAngle();
+    socket.emit('player_move', {playerMovement, rotation});
   }
 
   const upHandler = (event) => {
@@ -68,7 +71,8 @@ function Game(props) {
       case 83: playerMovement.down = false; break;
       default: return;
     }
-    socket.emit('player_move', playerMovement);
+    const rotation = orbitControlsRef.current.getAzimuthalAngle();
+    socket.emit('player_move', {playerMovement, rotation});
   }
 
   return (
@@ -76,10 +80,17 @@ function Game(props) {
         <RoomForm socket={socket}/>
         <Canvas flat linear>
             <color attach="background" args={['lightblue']} />
-            <OrbitControls target={cameraPosition} position={cameraPosition}/>
+            <PerspectiveCamera makeDefault />
+            <OrbitControls 
+              target={cameraPosition}
+              position={cameraPosition}
+              ref={orbitControlsRef}
+              maxPolarAngle={1.5}
+              minPolarAngle={0.5}
+            />
             <ambientLight intensity={0.8}/>
             <pointLight position={[5, 10, 0]} />
-            { room.players.map(p => <Player position={p.position} key={p.id} model={p.model} type={p.type} getObj={getObj}/>) }
+            { room.players.map(p => <Player position={p.position} key={p.id} model={p.model} type={p.type} player={p} getObj={getObj}/>) }
             <Plane world={room.world} getObj={getObj}/>
         </Canvas>
     </div>

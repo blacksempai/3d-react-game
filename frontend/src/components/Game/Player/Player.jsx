@@ -1,5 +1,5 @@
 function Player(props) {
-    const {position, type, model, getObj} = props;
+    const {position, type, model, getObj, player} = props;
 
     if(model === 'Cube') {
         return (
