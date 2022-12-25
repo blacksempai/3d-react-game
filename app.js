@@ -46,7 +46,9 @@ io.on('connection', (socket) => {
                 messages: [],
                 players: [],
                 world: generateWorld(),
-                gameStage: STAGE_PREPARATION
+                gameStage: STAGE_PREPARATION,
+                hidingTimer: 40000,
+                playingTimer: 120000
             }
             rooms.push(rm);
         }
@@ -60,8 +62,6 @@ io.on('connection', (socket) => {
                 rotation: 0,
                 model: getRandomModel(),
                 type: TYPE_HIDER,
-                hidingTimer: 40000,
-                playingTimer: 120000
             });
             if(rm.players.length === MAX_PLAYERS) {
                 startGame(rm);         

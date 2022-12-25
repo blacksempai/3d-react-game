@@ -7,6 +7,7 @@ import RoomForm from './RoomForm/RoomForm';
 import { useEffect, useState, useRef } from 'react';
 import { useLoader } from "@react-three/fiber";
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import Timer from './Timer/Timer';
 
 const playerMovement = {
   up: false,
@@ -77,6 +78,7 @@ function Game(props) {
   return (
     <div className={classes.canvasContainer}>
         <RoomForm socket={socket}/>
+        <Timer gameStage={room.gameStage} timer={room.hidingTimer} />
         <Canvas flat linear>
             <color attach="background" args={['lightblue']} />
             <OrbitControls 
