@@ -41,17 +41,19 @@ io.on('connection', (socket) => {
             id: socket.id,
             playerMovement: {},
             position: [0, -2.8, 0],
+            rotation: 0,
             model: getRandomModel(),
             type: 'HIDDER'
         });
     });
 
-    socket.on('player_move', (playerMovement) => {
+    socket.on('player_move', ({playerMovement, rotation}) => {
         const room = rooms.find(r => r.name === socketRoom);
         if(room) {
             const player = room.players.find(p => p.id === socket.id);
             if(player) {
                 player.playerMovement = playerMovement;
+                player.rotation = rotation;
             }
         }
     });
@@ -86,16 +88,20 @@ function serverTick() {
     rooms.forEach(r => {
         r.players.forEach(p => {
             if(p.playerMovement.left) {
-                p.position[0] -= 1;
+                p.position[0] += Math.sin(p.rotation-Math.PI/2);
+                p.position[2] += Math.cos(p.rotation-Math.PI/2);
             }
             if(p.playerMovement.right) {
-                p.position[0] += 1;
+                p.position[0] += Math.sin(p.rotation+Math.PI/2);
+                p.position[2] += Math.cos(p.rotation+Math.PI/2);
             }
             if(p.playerMovement.up) {
-                p.position[2] -= 1;
+                p.position[0] -= Math.sin(p.rotation);
+                p.position[2] -= Math.cos(p.rotation);
             }
             if(p.playerMovement.down) {
-                p.position[2] += 1;
+                p.position[0] += Math.sin(p.rotation);
+                p.position[2] += Math.cos(p.rotation);
             }
         });
         //TODO: send only players
