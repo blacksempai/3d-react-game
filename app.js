@@ -24,27 +24,26 @@ io.on('connection', (socket) => {
     let socketRoom;
 
     socket.on('join_room', (room) => {
-        socket.join(room);
-        socketRoom = room;
         let rm = rooms.find(r => r.name == room);
         if(!rm) {
             rm = {
                 name: room,
                 messages: [],
                 players: [],
-                world: generateWorld()
+                world: generateWorld(),
+                timeToStart: 30000,
+                gameStage: 'PREPARING'
             }
             rooms.push(rm);
         }
-
-        rm.players.push({
-            id: socket.id,
-            playerMovement: {},
-            position: [0, -2.8, 0],
-            rotation: 0,
-            model: getRandomModel(),
-            type: 'HIDDER'
-        });
+        if (rm.gameStage == 'PREPARING') {
+            rm.players.push(generatePlayer(rm, socket));
+            socket.join(room);
+            socketRoom = room;
+        }
+        else {
+            //TODO: Tell client that it is not conected to the room
+        }
     });
 
     socket.on('player_move', ({playerMovement, rotation}) => {
@@ -82,29 +81,63 @@ function generateWorld() {
     return world;
 }
 
+function generatePlayer(room, socket) {
+    if(room.players.length == 7) {
+        room.gameStage = 'STARTING';
+        if(!room.players.find(p => p.type == 'SEEKER')) {
+            return getPlayer(socket.id, 'SEEKER');
+        }
+        return getPlayer(socket.id, 'HIDDER');
+    }
+    if(!room.players.find(p => p.type == 'SEEKER')) {
+        return getPlayer(socket.id, Math.random() > 0.5 ? 'HIDDER' : 'SEEKER');
+    }
+    return getPlayer(socket.id, 'HIDDER');
+}
+
+function getPlayer(id, type) {
+    const model = type == 'SEEKER' ? 'Cube' : getRandomModel();
+    return {
+        id,
+        playerMovement: {},
+        position: [0, -2.8, 0],
+        rotation: 0,
+        model,
+        type
+    }
+}
+
 setInterval(serverTick, 25);
 
 function serverTick() {
     rooms.forEach(r => {
-        r.players.forEach(p => {
-            if(p.playerMovement.left) {
-                p.position[0] += Math.sin(p.rotation-Math.PI/2);
-                p.position[2] += Math.cos(p.rotation-Math.PI/2);
-            }
-            if(p.playerMovement.right) {
-                p.position[0] += Math.sin(p.rotation+Math.PI/2);
-                p.position[2] += Math.cos(p.rotation+Math.PI/2);
-            }
-            if(p.playerMovement.up) {
-                p.position[0] -= Math.sin(p.rotation);
-                p.position[2] -= Math.cos(p.rotation);
-            }
-            if(p.playerMovement.down) {
-                p.position[0] += Math.sin(p.rotation);
-                p.position[2] += Math.cos(p.rotation);
-            }
-        });
-        //TODO: send only players
+        
+        updatePlayersPosition(r.players)
         io.to(r.name).emit('server_tick', r);
+    });
+}
+
+function updateRoomStatus() {
+
+}
+
+function updatePlayersPosition(players) {
+    players.forEach(p => {
+        if(p.playerMovement.left) {
+            p.position[0] += Math.sin(p.rotation-Math.PI/2);
+            p.position[2] += Math.cos(p.rotation-Math.PI/2);
+        }
+        if(p.playerMovement.right) {
+            p.position[0] += Math.sin(p.rotation+Math.PI/2);
+            p.position[2] += Math.cos(p.rotation+Math.PI/2);
+        }
+        if(p.playerMovement.up) {
+            p.position[0] -= Math.sin(p.rotation);
+            p.position[2] -= Math.cos(p.rotation);
+        }
+        if(p.playerMovement.down) {
+            p.position[0] += Math.sin(p.rotation);
+            p.position[2] += Math.cos(p.rotation);
+        }
     });
 }
