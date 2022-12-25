@@ -6,6 +6,21 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 app.use(cors());
 
+const MAX_PLAYERS = 4;
+
+const TICK_TIME = 25;
+
+const STAGE_PREPARATION = 'PREPARATION';
+const STAGE_HIDING = 'HIDING';
+const STAGE_PLAYING = 'PLAYING';
+const STAGE_HIDERS_WIN = 'HIDERS_WIN';
+const STAGE_SEEKER_WIN = 'SEEKER_WIN';
+
+const TYPE_HIDER = 'HIDER';
+const TYPE_SPECTATOR = 'SPECTATOR';
+const TYPE_SEEKER = 'SEEKER';
+
+
 const io = new Server(server, {
     cors: {
         origin: 'http://localhost:3000',
@@ -24,27 +39,36 @@ io.on('connection', (socket) => {
     let socketRoom;
 
     socket.on('join_room', (room) => {
-        socket.join(room);
-        socketRoom = room;
         let rm = rooms.find(r => r.name == room);
         if(!rm) {
             rm = {
                 name: room,
                 messages: [],
                 players: [],
-                world: generateWorld()
+                world: generateWorld(),
+                gameStage: STAGE_PREPARATION
             }
             rooms.push(rm);
         }
-
-        rm.players.push({
-            id: socket.id,
-            playerMovement: {},
-            position: [0, -2.8, 0],
-            rotation: 0,
-            model: getRandomModel(),
-            type: 'HIDDER'
-        });
+        if(rm.gameStage === STAGE_PREPARATION) {
+            socket.join(room);
+            socketRoom = room;
+            rm.players.push({
+                id: socket.id,
+                playerMovement: {},
+                position: [0, -2.8, 0],
+                rotation: 0,
+                model: getRandomModel(),
+                type: TYPE_HIDER,
+                hidingTimer: 40000,
+                playingTimer: 120000
+            });
+            if(rm.players.length === MAX_PLAYERS) {
+                startGame(rm);         
+            }
+        } else {
+            socket.emit('error', 'This room is full');
+        }
     });
 
     socket.on('player_move', ({playerMovement, rotation}) => {
@@ -82,29 +106,62 @@ function generateWorld() {
     return world;
 }
 
-setInterval(serverTick, 25);
+function startGame(room) {
+    room.gameStage = STAGE_HIDING;
+    const seekerIndex = Math.floor(Math.random() * MAX_PLAYERS);
+    room.players[seekerIndex].type = TYPE_SEEKER;
+    room.players[seekerIndex].model = 'Cube';
+}
+
+setInterval(serverTick, TICK_TIME);
 
 function serverTick() {
     rooms.forEach(r => {
-        r.players.forEach(p => {
-            if(p.playerMovement.left) {
-                p.position[0] += Math.sin(p.rotation-Math.PI/2);
-                p.position[2] += Math.cos(p.rotation-Math.PI/2);
-            }
-            if(p.playerMovement.right) {
-                p.position[0] += Math.sin(p.rotation+Math.PI/2);
-                p.position[2] += Math.cos(p.rotation+Math.PI/2);
-            }
-            if(p.playerMovement.up) {
-                p.position[0] -= Math.sin(p.rotation);
-                p.position[2] -= Math.cos(p.rotation);
-            }
-            if(p.playerMovement.down) {
-                p.position[0] += Math.sin(p.rotation);
-                p.position[2] += Math.cos(p.rotation);
-            }
-        });
-        //TODO: send only players
+        updatePlayerPositions(r.players);
+        updateRoomTime(r);
         io.to(r.name).emit('server_tick', r);
     });
+}
+
+function updatePlayerPositions(players) {
+    players.forEach(p => {
+        if(p.playerMovement.left) {
+            p.position[0] += Math.sin(p.rotation-Math.PI/2);
+            p.position[2] += Math.cos(p.rotation-Math.PI/2);
+        }
+        if(p.playerMovement.right) {
+            p.position[0] += Math.sin(p.rotation+Math.PI/2);
+            p.position[2] += Math.cos(p.rotation+Math.PI/2);
+        }
+        if(p.playerMovement.up) {
+            p.position[0] -= Math.sin(p.rotation);
+            p.position[2] -= Math.cos(p.rotation);
+        }
+        if(p.playerMovement.down) {
+            p.position[0] += Math.sin(p.rotation);
+            p.position[2] += Math.cos(p.rotation);
+        }
+    });
+}
+
+function updateRoomTime(room) {
+    switch(room.gameStage) {
+        case STAGE_HIDING: return updateHidingTimer(room);
+        case STAGE_PLAYING: return updatePlayingTimer(room);
+        default: return;
+    }
+}
+
+function updateHidingTimer(room) {
+    room.hidingTimer -= TICK_TIME;
+    if(room.hidingTimer <= 0) {
+        room.gameStage = STAGE_PLAYING;
+    }
+}
+
+function updatePlayingTimer(room) {
+    room.playingTimer -= TICK_TIME;
+    if(room.playingTimer <= 0) {
+        room.gameStage = STAGE_HIDERS_WIN;
+    } 
 }
