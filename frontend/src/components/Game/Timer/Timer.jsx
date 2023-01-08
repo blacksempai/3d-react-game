@@ -1,10 +1,10 @@
 import classes from './Timer.module.css';
 
 function Timer(props) {
-    const {gameStage, timer} = props;
+    const {gameStage, timer, color} = props;
     const title = gameStage === 'HIDING' ? 'Time to hide:' : 'Time to seek:';
     return (
-        <div className={classes.timer}>
+        <div className={classes.timer} style={{color}}>
             <p>{title}</p>
             <p>{millisToMinutesAndSeconds(timer)}</p>
         </div>

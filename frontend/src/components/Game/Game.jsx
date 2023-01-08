@@ -2,7 +2,7 @@ import { Canvas } from '@react-three/fiber'
 import classes from './Game.module.css';
 import Player from './Player/Player';
 import Plane from './Plane/Plane';
-import { OrbitControls, Stars } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import RoomForm from './RoomForm/RoomForm';
 import { useEffect, useState, useRef } from 'react';
 import { useLoader } from "@react-three/fiber";
@@ -16,11 +16,22 @@ const playerMovement = {
   right: false
 };
 
+const STAGE_PREPARATION = 'PREPARATION';
+const STAGE_HIDING = 'HIDING';
+const STAGE_PLAYING = 'PLAYING';
+const STAGE_HIDERS_WIN = 'HIDERS_WIN';
+const STAGE_SEEKER_WIN = 'SEEKER_WIN';
+
+const TYPE_HIDER = 'HIDER';
+const TYPE_SPECTATOR = 'SPECTATOR';
+const TYPE_SEEKER = 'SEEKER';
+
 
 function Game(props) {
   const socket = props.socket;
   const [room, setRoom] = useState({players:[], world: []});
   const [cameraPosition, setCameraPosition] = useState([0,0,0]);
+  const [currentPlayer, setCurrentPlayer] = useState({});
   const orbitControlsRef = useRef();
 
   const models = new Map();
@@ -37,9 +48,11 @@ function Game(props) {
   useEffect(() => {
     socket.on('server_tick', room => {
       setRoom(room);
-      const curentPlayer = room.players.find(p => p.id === socket.id);
-      setCameraPosition(curentPlayer.position);
+      const curP = room.players.find(p => p.id === socket.id);
+      setCurrentPlayer(curP);
+      setCameraPosition(curP.position);
     });
+    socket.on('error', error => alert(error));
   }, [socket]);
 
   useEffect(() => {
@@ -75,10 +88,43 @@ function Game(props) {
     socket.emit('player_move', {playerMovement, rotation});
   }
 
+  if(room.gameStage === STAGE_HIDING && currentPlayer.type === TYPE_SEEKER) {
+    return (
+      <div className={classes.blackScreen}>
+        <Timer gameStage={room.gameStage} timer={room.hidingTimer} color='white'/>
+        <h1 className={classes.redTitle}>YOU ARE SEEKER!</h1>
+      </div>
+    );
+  }
+
+  if(room.gameStage === STAGE_HIDERS_WIN) {
+    return (
+      <div className={classes.blackScreen}>
+        <h1 className={classes.greenTitle}>HIDDERS WIN!</h1>
+      </div>
+    );
+  }
+
+  if(room.gameStage === STAGE_SEEKER_WIN) {
+    return (
+      <div className={classes.blackScreen}>
+        <h1 className={classes.redTitle}>SEEAKER WIN!</h1>
+      </div>
+    );
+  }
+
+
   return (
     <div className={classes.canvasContainer}>
-        <RoomForm socket={socket}/>
-        <Timer gameStage={room.gameStage} timer={room.hidingTimer} />
+        {!room.name ? <RoomForm socket={socket}/> : null}
+        {
+        room.gameStage === STAGE_HIDING ? 
+        <Timer gameStage={room.gameStage} timer={room.hidingTimer} color='black'/> : null
+        }
+        {
+        room.gameStage === STAGE_PLAYING ? 
+        <Timer gameStage={room.gameStage} timer={room.playingTimer} color='black'/> : null
+        }
         <Canvas flat linear>
             <color attach="background" args={['lightblue']} />
             <OrbitControls 

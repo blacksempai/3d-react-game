@@ -1,7 +1,7 @@
 .timer {
     position: fixed;
-    left: 40vw;
-    top: 5vh;
+    left: 44vw;
+    top: 2vh;
     z-index: 10;
     display: flex;
     gap: 1rem;

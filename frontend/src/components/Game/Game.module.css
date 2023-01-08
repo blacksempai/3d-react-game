@@ -6,3 +6,24 @@ body {
     width: 100vw;
     height: 100vh;
 }
+
+.blackScreen {
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.redTitle {
+    color: rgb(194, 25, 25);
+    font-family: Impact, sans-serif;
+    font-size: 5rem;
+}
+
+.greenTitle {
+    color: rgb(25, 194, 36);
+    font-family: Impact, sans-serif;
+    font-size: 5rem;
+}
