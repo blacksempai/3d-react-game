@@ -82,6 +82,33 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('catch_spell', () => {
+        const room = rooms.find(r => r.name === socketRoom);
+        if(room) {
+            const player = room.players.find(p => p.id === socket.id);
+            if(player.type === TYPE_SEEKER && room.gameStage === STAGE_PLAYING){
+                const x = player.position[0];
+                const z = player.position[2];
+                room.players.forEach(p => {
+                    if(p.type === TYPE_SEEKER) return;
+                    if(isCatched(p, x, z)) {
+                        p.type = TYPE_SEEKER;
+                        p.model = 'Cube'
+                    }
+                });
+                let isAllPlayersCatched = true;
+                room.players.forEach(p => {
+                    if(p.type == TYPE_HIDER) {
+                        isAllPlayersCatched = false;
+                    }
+                });
+                if(isAllPlayersCatched) {
+                    room.gameStage = STAGE_SEEKER_WIN;
+                }
+            }
+        }
+    });
+
 });
 
 const models = ['Mushroom_1', 'Mushroom_2', 'Mushroom_3', 'Mushroom_4']
@@ -164,4 +191,10 @@ function updatePlayingTimer(room) {
     if(room.playingTimer <= 0) {
         room.gameStage = STAGE_HIDERS_WIN;
     } 
+}
+
+function isCatched(player, x, z) {
+    const pX = player.position[0];
+    const pZ = player.position[2];
+    return pX > x-15 && pX < x+15 && pZ > z-15 && pZ < z+15;
 }

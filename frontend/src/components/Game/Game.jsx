@@ -58,9 +58,11 @@ function Game(props) {
   useEffect(() => {
     window.addEventListener('keydown', downHandler);
     window.addEventListener('keyup', upHandler);
+    window.addEventListener('keypress', pressHandler);
     return () => {
       window.removeEventListener('keydown', downHandler);
       window.removeEventListener('keyup', upHandler);
+      window.removeEventListener('keypress', pressHandler);
     }
   }, []);
 
@@ -86,6 +88,12 @@ function Game(props) {
     }
     const rotation = orbitControlsRef.current.getAzimuthalAngle();
     socket.emit('player_move', {playerMovement, rotation});
+  }
+
+  const pressHandler = (event) => {
+      if(event.keyCode === 101) {
+        socket.emit('catch_spell');
+      }
   }
 
   if(room.gameStage === STAGE_HIDING && currentPlayer.type === TYPE_SEEKER) {
