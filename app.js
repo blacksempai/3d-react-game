@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const http = require('http');
@@ -6,7 +7,9 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 app.use(cors());
 
-const MAX_PLAYERS = 4;
+const PORT = process.env.PORT || 5000;
+
+const MAX_PLAYERS = process.env.MAX_PLAYERS || 4;
 
 const TICK_TIME = 25;
 
@@ -28,9 +31,11 @@ const io = new Server(server, {
     }
 });
 
-server.listen(5000, () => {
-    console.log('listening on *:5000');
+server.listen(PORT, () => {
+    console.log('listening on *:'+PORT);
 });
+
+app.use(express.static('./frontend/build'));
 
 const rooms = [];
 
