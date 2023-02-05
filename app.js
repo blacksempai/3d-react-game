@@ -9,7 +9,7 @@ app.use(cors());
 
 const PORT = process.env.PORT || 5000;
 
-const MAX_PLAYERS = process.env.MAX_PLAYERS || 4;
+const MAX_PLAYERS = +process.env.MAX_PLAYERS || 4;
 
 const TICK_TIME = 25;
 
@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
                 model: getRandomModel(),
                 type: TYPE_HIDER,
             });
-            if(rm.players.length === MAX_PLAYERS) {
+            if(rm.players.length == MAX_PLAYERS) {
                 startGame(rm);         
             }
         } else {

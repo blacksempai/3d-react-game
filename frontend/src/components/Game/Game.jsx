@@ -2,12 +2,13 @@ import { Canvas } from '@react-three/fiber'
 import classes from './Game.module.css';
 import Player from './Player/Player';
 import Plane from './Plane/Plane';
-import { OrbitControls } from '@react-three/drei'
+import { Cylinder, OrbitControls } from '@react-three/drei'
 import RoomForm from './RoomForm/RoomForm';
 import { useEffect, useState, useRef } from 'react';
 import { useLoader } from "@react-three/fiber";
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import Timer from './Timer/Timer';
+import Info from './Info/Info';
 
 const playerMovement = {
   up: false,
@@ -32,6 +33,7 @@ function Game(props) {
   const [room, setRoom] = useState({players:[], world: []});
   const [cameraPosition, setCameraPosition] = useState([0,0,0]);
   const [currentPlayer, setCurrentPlayer] = useState({});
+    const [activeSkills, setActiveSkills] = useState([]);
   const orbitControlsRef = useRef();
 
   const models = new Map();
@@ -93,6 +95,8 @@ function Game(props) {
   const pressHandler = (event) => {
       if(event.keyCode === 101) {
         socket.emit('catch_spell');
+        activeSkills.push({position: currentPlayer.position});
+        setTimeout(() => activeSkills.pop(), 500);
       }
   }
 
@@ -126,6 +130,10 @@ function Game(props) {
     <div className={classes.canvasContainer}>
         {!room.name ? <RoomForm socket={socket}/> : null}
         {
+        room.gameStage === STAGE_PREPARATION ? 
+        <Info message="Preparing Stage"/> : null
+        }
+        {
         room.gameStage === STAGE_HIDING ? 
         <Timer gameStage={room.gameStage} timer={room.hidingTimer} color='black'/> : null
         }
@@ -145,6 +153,9 @@ function Game(props) {
               maxDistance={15}
             />
             <ambientLight intensity={0.8}/>
+            {activeSkills.map(skill => 
+              <Cylinder args={[15, 15, 1.5, 30]} position={skill.position} material-color="hotpink"/>
+            )}
             <pointLight position={[5, 10, 0]} />
             { room.players.map(p => <Player position={p.position} key={p.id} model={p.model} type={p.type} getObj={getObj}/>) }
             <Plane world={room.world} getObj={getObj}/>
