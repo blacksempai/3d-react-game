@@ -9,6 +9,7 @@ import { useLoader } from "@react-three/fiber";
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import Timer from './Timer/Timer';
 import Info from './Info/Info';
+import Chat from './Chat/Chat';
 
 const playerMovement = {
   up: false,
@@ -37,7 +38,7 @@ function Game(props) {
   const orbitControlsRef = useRef();
 
   const models = new Map();
-  models.set('Mushroom_1', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Mushroom_1.fbx')); 
+  models.set('Corn_1', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Corn_1.fbx')); 
   models.set('Mushroom_2', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Mushroom_2.fbx'));
   models.set('Mushroom_3', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Mushroom_3.fbx'));
   models.set('Mushroom_4', useLoader(FBXLoader, process.env.PUBLIC_URL + 'models/Mushroom_4.fbx'));
@@ -128,6 +129,7 @@ function Game(props) {
 
   return (
     <div className={classes.canvasContainer}>
+        {room.name ? <Chat socket={socket} messages={room.messages}/> : null}
         {!room.name ? <RoomForm socket={socket}/> : null}
         {
         room.gameStage === STAGE_PREPARATION ? 

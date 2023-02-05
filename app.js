@@ -87,6 +87,13 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('message', message => {
+        const room = rooms.find(r => r.name === socketRoom);
+        if(room) {
+            room.messages.push(message);
+        }
+    });
+
     socket.on('catch_spell', () => {
         const room = rooms.find(r => r.name === socketRoom);
         if(room) {
@@ -116,7 +123,7 @@ io.on('connection', (socket) => {
 
 });
 
-const models = ['Mushroom_1', 'Mushroom_2', 'Mushroom_3', 'Mushroom_4']
+const models = ['Corn_1', 'Mushroom_2', 'Mushroom_3', 'Mushroom_4']
 
 function getRandomModel() {
     const index = Math.floor(Math.random() * models.length);

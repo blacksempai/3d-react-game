@@ -2,7 +2,28 @@
     position: fixed;
     display: block;
     top: 1rem;
-    left: 40%;
+    left: 35%;
     margin: 0 auto;
     z-index: 1000;
+    font-size: 1.5rem;
+}
+
+.form input {
+    padding: 0.5rem 1rem;
+    box-shadow: 2px 2px 2px 0;
+    background: transparent;
+    font-size: 1.5rem;
+}
+
+.form button {
+    padding: 0.5rem 1rem;
+    box-shadow: 2px 2px 2px 0;
+    background: transparent;
+    margin-left: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.form button:hover {
+    background-color: rgba(255, 255, 255, 0.4);
 }
